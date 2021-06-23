@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Leap;
 
 
 #pragma warning disable 0649
@@ -28,6 +29,7 @@ public class ParticleFun : MonoBehaviour
 
     int kernelID;
     ComputeBuffer particleBuffer;
+    Controller controller;
 
     int groupSizeX; 
     
@@ -82,6 +84,8 @@ public class ParticleFun : MonoBehaviour
         material.SetBuffer("particleBuffer", particleBuffer);
 
         material.SetInt("_PointSize", pointSize);
+
+        controller = new Controller();
     }
 
     void OnRenderObject()
@@ -112,15 +116,40 @@ public class ParticleFun : MonoBehaviour
 
     void OnGUI()
     {
+    ;
+
+
         Vector3 p = new Vector3();
         Camera c = Camera.main;
         Event e = Event.current;
         Vector2 mousePos = new Vector2();
 
+        int appWidth = c.pixelWidth;
+        int appHeight = c.pixelHeight;
+        InteractionBox iBox = leap.Frame().InteractionBox;
+
+
+        if(leap.Frame().Hands.Count > 0){
+            Hand hand = leap.Frame().Hands[0];
+
+            Leap.Vector leapPoint = hand.StabilizedPalmPosition;
+            Leap.Vector normalizedPoint = iBox.NormalizePoint(leapPoint, false);
+  
+            mousePos.x = normalizedPoint.x * appWidth;
+            mousePos.y = (1 - normalizedPoint.y) * appHeight;
+            //The z-coordinate is not used
+        }
+
+        else{
+            mousePos.x = appWidth/2;
+            mousePos.y = appHeight/2;
+        }
+        
+        
         // Get the mouse position from Event.
         // Note that the y position from Event is inverted.
-        mousePos.x = e.mousePosition.x;
-        mousePos.y = c.pixelHeight - e.mousePosition.y;
+       // mousePos.x = e.mousePosition.x;
+        //mousePos.y = c.pixelHeight - e.mousePosition.y;
 
         p = c.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, c.nearClipPlane + 14));// z = 3.
 
